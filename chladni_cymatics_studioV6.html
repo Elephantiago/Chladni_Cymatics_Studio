@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chladni v6.0 - Sentient Programmable Matter</title>
+    <style>
+        :root {
+            --bg: #050507; --panel: #0d0d11; 
+            --accent-a: #00ffcc; --accent-b: #ff0077; --accent-live: #0088ff;
+            --text: #ffffff; --text-dim: #777785;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg); color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex; height: 100vh; overflow: hidden; user-select: none;
+        }
+
+        #sidebar {
+            width: 360px; min-width: 360px; background: var(--panel);
+            border-right: 1px solid var(--border); display: flex;
+            flex-direction: column; padding: 22px; gap: 14px; overflow-y: auto; z-index: 10;
+        }
+
+        hheader { border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        h1 { font-size: 1.15rem; letter-spacing: 1.5px; color: #fff; font-weight: 800; }
+        h1 span { color: var(--accent-a); }
+        p.subtitle { font-size: 0.75rem; color: var(--text-dim); margin-top: 4px; }
+
+        .control-group { display: flex; flex-direction: column; gap: 4px; }
+        label { font-size: 0.75rem; font-weight: 600; display: flex; justify-content: space-between; text-transform: uppercase; letter-spacing: 0.5px;}
+        .val { color: var(--accent-a); font-weight: bold;}
+
+        input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--accent-a); }
+        input[type="file"] {
+            background: rgba(0,0,0,0.5); border: 1px solid var(--border);
+            color: var(--accent-a); padding: 8px; border-radius: 6px; font-size: 0.75rem; width: 100%;
+        }
+
+        /* The Magic Section */
+        .box-magic {
+            background: linear-gradient(135deg, rgba(0, 255, 204, 0.08), rgba(255, 0, 119, 0.08));
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 14px; border-radius: 8px; display: flex; flex-direction: column; gap: 12px;
+        }
+
+        .box-modes {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; border: 1px solid var(--border);
+        }
+
+        #stage { flex-grow: 1; display: flex; justify-content: center; align-items: center; background: #010101; position: relative; }
+        canvas { background: #000; box-shadow: 0 0 60px rgba(0, 255, 204, 0.12); max-width: 100%; max-height: 100%; }
+
+        #video-dock {
+            position: absolute; bottom: 20px; right: 20px; width: 280px;
+            background: #000; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; overflow: hidden;
+            display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 20;
+        }
+        #video-dock video { width: 100%; display: block; }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <hheader>
+            <h1>CHLADNI <span>V6.0</span></h1>
+            <p class="subtitle">Non-Euclidean Sentient Topology</p>
+        </hheader>
+
+        <div class="control-group">
+            <label style="color: var(--text-dim);">1. Audio / Video Source</label>
+            <input type="file" id="mediaInput" accept="audio/*,video/*">
+        </div>
+
+        <div class="control-group">
+            <label><span>Particle Count</span> <span class="val" id="disp-particles">40,000</span></label>
+            <input type="range" id="slider-particles" min="1000" max="60000" step="1000" value="40000">
+        </div>
+
+        <div class="box-magic">
+            <span style="font-size: 0.7rem; font-weight: 800; color: #fff; letter-spacing: 1px;">SENTIENT MORPH ENGINE</span>
+            
+            <div class="control-group">
+                <label style="color: var(--accent-a);"><span>Audio Auto-Morph</span> <span id="disp-autoblend">85%</span></label>
+                <input type="range" id="slider-autoblend" min="0.0" max="1.0" step="0.05" value="0.85">
+                <p class="subtitle" style="margin-top: 0;">Music pitch autonomously shifts the grid geometry</p>
+            </div>
+
+            <div class="control-group">
+                <label style="color: var(--accent-b);"><span>Phase Breathing Speed</span> <span id="disp-phasespeed">1.2</span></label>
+                <input type="range" id="slider-phasespeed" min="0.0" max="3.0" step="0.1" value="1.2" style="accent-color: var(--accent-b);">
+                <p class="subtitle" style="margin-top: 0;">Forces fault lines to glide like a liquid escalator</p>
+            </div>
+        </div>
+
+        <span style="font-size: 0.7rem; font-weight: bold; color: var(--text-dim); margin-top: 4px; letter-spacing: 1px;">BASE EIGENMODE ANCHORS</span>
+        <div class="box-modes">
+            <div class="control-group">
+                <label style="color: var(--accent-a);">Mode A (Low)</label>
+                <div style="display: flex; gap: 4px;">
+                    <input type="number" id="num-na" min="1" max="12" value="3">
+                    <input type="number" id="num-ma" min="1" max="12" value="5">
+                </div>
+            </div>
+            <div class="control-group">
+                <label style="color: var(--accent-b);">Mode B (High)</label>
+                <div style="display: flex; gap: 4px;">
+                    <input type="number" id="num-nb" min="1" max="12" value="6">
+                    <input type="number" id="num-mb" min="1" max="12" value="6">
+                </div>
+            </div>
+        </div>
+
+        <div class="control-group" style="margin-top: 6px;">
+            <label><span>Plate Trapping (Friction)</span> <span class="val" id="disp-friction" style="color:#fff;">0.93</span></label>
+            <input type="range" id="slider-friction" min="0.80" max="0.99" step="0.01" value="0.93" style="accent-color: var(--text-dim);">
+        </div>
+
+        <div class="control-group">
+            <label><span>Trapped Sand Shimmer</span> <span class="val" id="disp-shimmer" style="color:#fff;">1.8</span></label>
+            <input type="range" id="slider-shimmer" min="0.0" max="5.0" step="0.1" value="1.8" style="accent-color: var(--text-dim);">
+        </div>
+    </div>
+
+    <div id="stage">
+        <canvas id="chladniCanvas"></canvas>
+        <div id="video-dock"><video id="mediaPlayer" controls crossorigin="anonymous"></video></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('chladniCanvas');
+        const ctx = canvas.getContext('2d');
+        const stage = document.getElementById('stage');
+        const mediaPlayer = document.getElementById('mediaPlayer');
+
+        const UI = {
+            particles: document.getElementById('slider-particles'),
+            autoblend: document.getElementById('slider-autoblend'),
+            phasespeed: document.getElementById('slider-phasespeed'),
+            friction: document.getElementById('slider-friction'),
+            shimmer: document.getElementById('slider-shimmer'),
+            nA: document.getElementById('num-na'), mA: document.getElementById('num-ma'),
+            nB: document.getElementById('num-nb'), mB: document.getElementById('num-mb')
+        };
+
+        let audioCtx, analyser, dataArray;
+        let particles = [];
+        let globalPhaseAngle = 0;
+        let currentLiveBlend = 0.5;
+
+        function resize() {
+            const side = Math.min(stage.clientWidth - 40, stage.clientHeight - 40);
+            canvas.width = side; canvas.height = side;
+        }
+        window.addEventListener('resize', resize); resize();
+
+        function syncParticles() {
+            const count = parseInt(UI.particles.value);
+            document.getElementById('disp-particles').textContent = count.toLocaleString();
+            if(count < particles.length) particles.length = count;
+            else {
+                const add = count - particles.length;
+                for(let i=0; i<add; i++) {
+                    particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, vx: (Math.random()-0.5)*4, vy: (Math.random()-0.5)*4 });
+                }
+            }
+        }
+        UI.particles.addEventListener('input', syncParticles); syncParticles();
+
+        ['autoblend', 'phasespeed', 'friction', 'shimmer'].forEach(k => {
+            UI[k].addEventListener('input', () => {
+                let v = UI[k].value;
+                if(k === 'autoblend') v = Math.round(v * 100) + '%';
+                document.getElementById(`disp-${k}`).textContent = v;
+            });
+        });
+
+        document.getElementById('mediaInput').addEventListener('change', function() {
+            if(!this.files[0]) return;
+            mediaPlayer.src = URL.createObjectURL(this.files[0]);
+            document.getElementById('video-dock').style.display = this.files[0].type.startsWith('video/') ? 'block' : 'none';
+
+            if(!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser(); analyser.fftSize = 256;
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                audioCtx.createMediaElementSource(mediaPlayer).connect(analyser);
+                analyser.connect(audioCtx.destination);
+            }
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            mediaPlayer.play();
+        });
+
+        // HACK 2 IMPLEMENTED: Spatial Sine Waves injected with Time-Phase drift
+        function getLivingSuperposition(x, y, nA, mA, nB, mB, blendRatio, phase) {
+            const u = x / canvas.width, v = y / canvas.height;
+            const pi = Math.PI;
+
+            // Mode A undulates forward in phase
+            const waveA = Math.sin(nA * pi * u + phase) * Math.sin(mA * pi * v) - 
+                          Math.sin(mA * pi * u) * Math.sin(nA * pi * v + phase);
+
+            // Mode B undulates backward in phase
+            const waveB = Math.sin(nB * pi * u - phase) * Math.sin(mB * pi * v) - 
+                          Math.sin(mB * pi * u) * Math.sin(nB * pi * v - phase);
+
+            return Math.abs((waveA * (1.0 - blendRatio)) + (waveB * blendRatio));
+        }
+
+        function render() {
+            requestAnimationFrame(render);
+
+            const nA = parseFloat(UI.nA.value) || 3, mA = parseFloat(UI.mA.value) || 5;
+            const nB = parseFloat(UI.nB.value) || 6, mB = parseFloat(UI.mB.value) || 6;
+            const fric = parseFloat(UI.friction.value);
+            const shimmer = parseFloat(UI.shimmer.value);
+            const autoBlendSensitivity = parseFloat(UI.autoblend.value);
+            const phaseVelocity = parseFloat(UI.phasespeed.value);
+
+            let audioOverall = 0, bassRatio = 0.5;
+
+            if(analyser && !mediaPlayer.paused) {
+                analyser.getByteFrequencyData(dataArray);
+                let bassSum = 0, trebleSum = 0;
+                
+                for(let i=0; i<dataArray.length; i++) {
+                    audioOverall += dataArray[i];
+                    if(i < 6) bassSum += dataArray[i];
+                    else if(i > 16 && i < 60) trebleSum += dataArray[i];
+                }
+                audioOverall = (audioOverall / dataArray.length) / 255;
+                
+                // HACK 1 IMPLEMENTED: Calculate Treble-to-Bass dominance
+                const totalBT = (bassSum + trebleSum) || 1;
+                const targetBlend = (trebleSum / totalBT); 
+                
+                // Lowpass filter the blend target so the geometry doesn't hyper-jitter
+                currentLiveBlend += (targetBlend - currentLiveBlend) * (0.08 * autoBlendSensitivity);
+            }
+
+            // Step forward the spatial phase tied to the volume of the room
+            globalPhaseAngle += (audioOverall * phaseVelocity) * 0.08;
+
+            ctx.fillStyle = 'rgba(1, 1, 2, 0.35)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Single GPU brush state declaration
+            ctx.fillStyle = '#00ffcc';
+
+            const w = canvas.width, h = canvas.height;
+
+            for(let i=0; i<particles.length; i++) {
+                let p = particles[i];
+                let v = getLivingSuperposition(p.x, p.y, nA, mA, nB, mB, currentLiveBlend, globalPhaseAngle);
+
+                if(v > 0.045) {
+                    const shove = (v * 9.0) * (audioOverall * 2.5 + 0.2);
+                    p.vx += (Math.random() - 0.5) * shove;
+                    p.vy += (Math.random() - 0.5) * shove;
+                } else {
+                    const buzz = audioOverall * shimmer * 3.0;
+                    p.x += (Math.random() - 0.5) * buzz;
+                    p.y += (Math.random() - 0.5) * buzz;
+                }
+
+                p.vx *= fric; p.vy *= fric;
+                p.x += p.vx; p.y += p.vy;
+
+                if(p.x < 0) p.x = w; if(p.x > w) p.x = 0;
+                if(p.y < 0) p.y = h; if(p.y > h) p.y = 0;
+
+                // Pristine 1.2px Crystalline render
+                ctx.fillRect(p.x, p.y, 1.2, 1.2);
+            }
+        }
+
+        render();
+    </script>
+</body>
+</html>
